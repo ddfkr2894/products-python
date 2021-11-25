@@ -26,6 +26,12 @@ class Product:
         # This is for the button which is going to add a product
         ttk.Button(frame, text='Save Product').grid(row= 3, columnspan= 2, sticky= W + E)
 
+        # Table Data
+        self.tree = ttk.Treeview(height= 10, columns= 2)
+        self.tree.grid(row= 4, column= 0, columnspan= 2)
+        self.tree.heading('#0', text= 'Name', anchor= CENTER)
+        self.tree.heading('#1', text= 'Price', anchor= CENTER)
+
 if __name__ == '__main__':
     window = Tk()
     application = Product(window)
