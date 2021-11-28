@@ -38,6 +38,10 @@ class Product:
         self.tree.heading('#0', text= 'Name', anchor= CENTER)
         self.tree.heading('#1', text= 'Price', anchor= CENTER)
 
+        # Delete and Edit buttons
+        ttk.Button(text= 'Delete Item', command= self.delete_product).grid(row= 5, column= 0, sticky= W + E)
+        ttk.Button(text= 'Edit Item', command= self.edit_product).grid(row= 5, column= 1, sticky= W + E)
+
         # Using the get_products method so we can see all the data displayed at the beggining of the application
         self.get_products()
 
@@ -76,6 +80,61 @@ class Product:
         else:
             self.message['text'] = 'Name And Price inputs are required'
         self.get_products() # Update the table list
+
+    def delete_product(self):
+        self.message['text'] = ''
+        try:
+            self.tree.item(self.tree.selection())['text'][0]
+        except IndexError as e:
+            self.message['text'] = 'You have not selected any record yet'
+            return
+        self.message['text'] = ''
+        name = self.tree.item(self.tree.selection())['text']
+        query = 'DELETE FROM Products WHERE name = ?'
+        self.run_query(query, (name, ))  # Colocamos esa coma a lado del parametro 'name' para que se sepa que es una tupla
+        self.message['text'] = 'Record {} deleted successfully'.format(self.name.get())
+        self.get_products()
+
+    def edit_product(self):
+        self.message['text'] = ''
+        try:
+            self.tree.item(self.tree.selection())['text'][0]
+        except IndexError as e:
+            self.message['text'] = 'You have not selected any record yet'
+            return
+        name = self.tree.item(self.tree.selection())['text']
+        old_price = self.tree.item(self.tree.selection())['values'][0]
+        self.edit_window = Toplevel()   # Creamos una ventana emergente donde editar el elemento seleccionado
+        self.edit_window.title = 'Edit Product'
+
+        # Previous name
+        Label(self.edit_window, text= 'Previous Name: ').grid(row= 0, column= 1)
+        Entry(self.edit_window, textvariable= StringVar(self.edit_window, value = name), state= 'readonly').grid(row= 0, column= 2)
+
+        # New name
+        Label(self.edit_window, text= 'New Name: ').grid(row= 1, column= 1)
+        new_name = Entry(self.edit_window)
+        new_name.grid(row= 1, column=2)
+
+        # Previous price
+        Label(self.edit_window, text= 'Previous Name: ').grid(row= 2, column= 1)
+        Entry(self.edit_window, textvariable= StringVar(self.edit_window, value = old_price), state= 'readonly').grid(row= 2, column= 2)
+
+        # New price
+        Label(self.edit_window, text= 'New Price: ').grid(row= 3, column= 1)
+        new_price = Entry(self.edit_window)
+        new_price.grid(row= 3, column=2)
+
+        Button(self.edit_window, text= 'Update', command= lambda: self.edit_record(new_name.get(), name, new_price.get(), old_price)).grid(row= 4, column= 2, sticky= W)
+        self.edit_window.mainloop()
+
+    def edit_record(self, new_name, name, new_price, old_price):
+        query = 'UPDATE Products SET name = ?, price = ? WHERE name = ? AND price = ?'
+        parameters = (new_name, new_price, name, old_price)
+        self.run_query(query, parameters)
+        self.edit_window.destroy()
+        self.message['text'] = 'Record {} updated successfully'.format(name)
+        self.get_products()
 
 if __name__ == '__main__':
     window = Tk()
